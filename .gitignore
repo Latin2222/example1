@@ -3,4 +3,4 @@
 
 # За исключением CMakeLists.txt и main.cpp
 !CMakeLists.txt
-!main.cpp
+!FirstLab.cpp
