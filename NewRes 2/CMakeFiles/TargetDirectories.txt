@@ -1,0 +1,3 @@
+C:/files/CMakeFiles/lab1.dir
+C:/files/CMakeFiles/ALL_BUILD.dir
+C:/files/CMakeFiles/ZERO_CHECK.dir
