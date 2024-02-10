@@ -1,6 +1,0 @@
-# Игнорировать все файлы и директории
-*
-
-# За исключением CMakeLists.txt и main.cpp
-!CMakeLists.txt
-!FirstLab.cpp
