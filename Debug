@@ -1,0 +1,180 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <array>
+#include <cstdlib>
+#include <ctime>
+#define M_PI 3.141592653589793
+
+using namespace std;
+using namespace sf;
+
+const int vertexCount = 5;
+const float nodeRadius = 40.f;
+
+const array<pair<int, int>, 9> connections = { {
+    {1, 2}, {1, 3}, {1, 4}, {2, 3}, {3, 2}, {3, 4}, {4, 3}, {4, 5}, {5, 1}
+} };
+
+Color getRandomColor() {
+    return Color(rand() % 256, rand() % 256, rand() % 256);
+}
+
+// Функция для вычисления позиций вершин правильного пятиугольника
+const array<Vector2f, vertexCount> calculatePentagonPositions(float centerX, float centerY, float radius) {
+    array<Vector2f, vertexCount> positions;
+    float angleStep = 2 * M_PI / vertexCount; // Угол между вершинами
+    float startAngle = -M_PI / 2; // Начало с верхней точки
+
+    for (int i = 0; i < vertexCount; ++i) {
+        float angle = startAngle + i * angleStep;
+        positions[i] = {
+            centerX + radius * cos(angle),
+            centerY + radius * sin(angle)
+        };
+    }
+
+    return positions;
+}
+
+void drawGraph(const array<Vector2f, vertexCount>& customPositions) {
+    RenderWindow window(VideoMode(1000, 1000), "Graphs");
+    Font font;
+    font.loadFromFile("Arial.ttf");
+
+    Texture arrowTexture;
+    arrowTexture.loadFromFile("strela.png");
+
+    CircleShape nodes[vertexCount];
+    Text labels[vertexCount];
+    Vector2f positions[vertexCount];
+
+    srand(time(nullptr));
+
+    vector<Color> arrowColors;
+    for (size_t i = 0; i < connections.size(); ++i) {
+        arrowColors.push_back(getRandomColor());
+    }
+
+    for (int i = 0; i < vertexCount; ++i) {
+        positions[i] = customPositions[i];
+
+        nodes[i].setRadius(nodeRadius);
+        nodes[i].setOutlineColor(Color::Red);
+        nodes[i].setOutlineThickness(3);
+        nodes[i].setPosition(positions[i] - Vector2f(nodeRadius, nodeRadius));
+
+        labels[i].setFont(font);
+        labels[i].setString(to_string(i + 1));
+        labels[i].setCharacterSize(39);
+        labels[i].setFillColor(Color::Red);
+        labels[i].setPosition(positions[i] - Vector2f(nodeRadius / 3, nodeRadius / 1.5));
+    }
+
+    while (window.isOpen()) {
+        Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == Event::Closed) {
+                window.close();
+            }
+        }
+
+        window.clear(Color::White);
+
+        int colorIndex = 0;
+        for (const auto& connection : connections) {
+            Vector2f start = positions[connection.first - 1];
+            Vector2f end = positions[connection.second - 1];
+            float edgeLength = sqrt(pow(end.x - start.x, 2) + pow(end.y - start.y, 2));
+
+            RectangleShape arrow(Vector2f(edgeLength - 40, 70.0f));
+            arrow.setTexture(&arrowTexture);
+            arrow.setPosition(start);
+            arrow.setOrigin(0, 35);
+            arrow.setRotation(atan2(end.y - start.y, end.x - start.x) * 180 / M_PI);
+
+            arrow.setFillColor(arrowColors[colorIndex++]);
+
+            window.draw(arrow);
+        }
+
+        for (int i = 0; i < vertexCount; ++i) {
+            window.draw(nodes[i]);
+            window.draw(labels[i]);
+        }
+
+        window.display();
+    }
+}
+
+void printEdgeList() {
+    cout << "Список ребер\n";
+    for (const auto& connection : connections) {
+        cout << "(" << connection.first << ", " << connection.second << ") ";
+    }
+    cout << endl << endl;
+}
+
+void printAdjacencyMatrix() {
+    bool adjacency[vertexCount][vertexCount] = { false };
+
+    for (const auto& connection : connections) {
+        int from = connection.first - 1;
+        int to = connection.second - 1;
+        adjacency[from][to] = true;
+    }
+
+    cout << "Матрица смежности\n";
+    cout << "   ";
+    for (int i = 0; i < vertexCount; i++) cout << i + 1 << " ";
+    cout << endl;
+
+    for (int i = 0; i < vertexCount; i++) {
+        cout << i + 1 << ": ";
+        for (int j = 0; j < vertexCount; j++) {
+            cout << adjacency[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void printAdjacencyList() {
+    vector<int> adjacencyList[vertexCount];
+
+    for (const auto& connection : connections) {
+        int from = connection.first - 1;
+        int to = connection.second - 1;
+        adjacencyList[from].push_back(to);
+    }
+
+    cout << "Список смежности\n";
+    for (int i = 0; i < vertexCount; i++) {
+        cout << i + 1 << ": ";
+        for (int neighbor : adjacencyList[i]) {
+            cout << neighbor + 1 << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+int main() {
+    setlocale(LC_ALL, "Rus");
+
+    // Центр и радиус для правильного пятиугольника
+    float centerX = 500.f;
+    float centerY = 500.f;
+    float radius = 300.f;
+
+    // Вычисляем позиции для правильного пятиугольника
+    const array<Vector2f, vertexCount> pentagonPositions = calculatePentagonPositions(centerX, centerY, radius);
+
+    drawGraph(pentagonPositions);
+    printEdgeList();
+    printAdjacencyMatrix();
+    printAdjacencyList();
+
+    return 0;
+}
