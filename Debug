@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdlib>
 #include <ctime>
-#include <set>
 #define M_PI 3.141592653589793
 
 using namespace std;
@@ -37,23 +36,36 @@ const array<Vector2f, vertexCount> calculatePentagonPositions(float centerX, flo
 
 // Генерация всех возможных уникальных цветов
 vector<Color> generateUniqueColors(size_t count) {
-    set<Color> uniqueColors;
+    vector<Color> uniqueColors;
+    set<pair<int, int>> usedColors;
 
     while (uniqueColors.size() < count) {
-        Color randomColor(rand() % 256, rand() % 256, rand() % 256);
-        uniqueColors.insert(randomColor);
+        int r = rand() % 256;
+        int g = rand() % 256;
+        int b = rand() % 256;
+
+        if (usedColors.find({r, g}) == usedColors.end()) {
+            uniqueColors.emplace_back(r, g, b);
+            usedColors.insert({r, g});
+        }
     }
 
-    return vector<Color>(uniqueColors.begin(), uniqueColors.end());
+    return uniqueColors;
 }
 
 void drawGraph(const array<Vector2f, vertexCount>& customPositions) {
     RenderWindow window(VideoMode(1000, 1000), "Graphs");
     Font font;
-    font.loadFromFile("Arial.ttf");
+    if (!font.loadFromFile("Arial.ttf")) {
+        cerr << "Error: Unable to load Arial.ttf" << endl;
+        return;
+    }
 
     Texture arrowTexture;
-    arrowTexture.loadFromFile("strela.png");
+    if (!arrowTexture.loadFromFile("strela.png")) {
+        cerr << "Error: Unable to load strela.png" << endl;
+        return;
+    }
 
     CircleShape nodes[vertexCount];
     Text labels[vertexCount];
