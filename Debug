@@ -1,4 +1,39 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <array>
+#include <cstdlib>
+#include <ctime>
 #include <set>
+#define M_PI 3.141592653589793
+
+using namespace std;
+using namespace sf;
+
+const int vertexCount = 5;
+const float nodeRadius = 40.f;
+
+const array<pair<int, int>, 9> connections = { {
+    {1, 2}, {1, 3}, {1, 4}, {2, 3}, {3, 2}, {3, 4}, {4, 3}, {4, 5}, {5, 1}
+} };
+
+// Функция для вычисления позиций вершин правильного пятиугольника
+const array<Vector2f, vertexCount> calculatePentagonPositions(float centerX, float centerY, float radius) {
+    array<Vector2f, vertexCount> positions;
+    float angleStep = 2 * M_PI / vertexCount; // Угол между вершинами
+    float startAngle = -M_PI / 2; // Начало с верхней точки
+
+    for (int i = 0; i < vertexCount; ++i) {
+        float angle = startAngle + i * angleStep;
+        positions[i] = {
+            centerX + radius * cos(angle),
+            centerY + radius * sin(angle)
+        };
+    }
+
+    return positions;
+}
 
 // Генерация всех возможных уникальных цветов
 vector<Color> generateUniqueColors(size_t count) {
@@ -78,4 +113,75 @@ void drawGraph(const array<Vector2f, vertexCount>& customPositions) {
 
         window.display();
     }
+}
+
+void printEdgeList() {
+    cout << "Список ребер\n";
+    for (const auto& connection : connections) {
+        cout << "(" << connection.first << ", " << connection.second << ") ";
+    }
+    cout << endl << endl;
+}
+
+void printAdjacencyMatrix() {
+    bool adjacency[vertexCount][vertexCount] = { false };
+
+    for (const auto& connection : connections) {
+        int from = connection.first - 1;
+        int to = connection.second - 1;
+        adjacency[from][to] = true;
+    }
+
+    cout << "Матрица смежности\n";
+    cout << "   ";
+    for (int i = 0; i < vertexCount; i++) cout << i + 1 << " ";
+    cout << endl;
+
+    for (int i = 0; i < vertexCount; i++) {
+        cout << i + 1 << ": ";
+        for (int j = 0; j < vertexCount; j++) {
+            cout << adjacency[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void printAdjacencyList() {
+    vector<int> adjacencyList[vertexCount];
+
+    for (const auto& connection : connections) {
+        int from = connection.first - 1;
+        int to = connection.second - 1;
+        adjacencyList[from].push_back(to);
+    }
+
+    cout << "Список смежности\n";
+    for (int i = 0; i < vertexCount; i++) {
+        cout << i + 1 << ": ";
+        for (int neighbor : adjacencyList[i]) {
+            cout << neighbor + 1 << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+int main() {
+    setlocale(LC_ALL, "Rus");
+
+    // Центр и радиус для правильного пятиугольника
+    float centerX = 500.f;
+    float centerY = 500.f;
+    float radius = 300.f;
+
+    // Вычисляем позиции для правильного пятиугольника
+    const array<Vector2f, vertexCount> pentagonPositions = calculatePentagonPositions(centerX, centerY, radius);
+
+    drawGraph(pentagonPositions);
+    printEdgeList();
+    printAdjacencyMatrix();
+    printAdjacencyList();
+
+    return 0;
 }
